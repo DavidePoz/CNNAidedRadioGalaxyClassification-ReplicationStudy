@@ -5,6 +5,7 @@ applied to CNN-aided morphological classification of radio galaxies by Brand et 
 
 The reference paper can be found at: https://academic.oup.com/mnras/article/522/1/292/7100971.
 
+A detailed report of the experiment results is provided by `ExperimentReport.pdf`.
 ## DATASET
 The dataset (provided by the original authors) is not included in this repository. 
 Download it from: https://doi.org/10.5281/zenodo.7645530.
@@ -27,7 +28,7 @@ Then extract the archive and place it in the `data/` directory as shown below:
     - Statistics and Machine Learning Toolbox.
 3. Optional: CUDA-capable GPU (to improve training speeds).
 
-## DIRECTORY STRUCTURE STRUCTURE
+## DIRECTORY STRUCTURE
 ```
     .
     ├── startup.m                        Path configuration (executed on startup)
@@ -73,23 +74,23 @@ Then extract the archive and place it in the `data/` directory as shown below:
 Open MATLAB with the project root as working directory. The file `startup.m`
 adds the necessary folders to the MATLAB path automatically.
 Then execute the scripts (contained in the scripts/ directory) in order:
-1. - LoadData
+1. LoadData
     Reads the CSV, creates an imageDatastore, splits into train/val/test
     (80% / 10% / 10%), saves to data/datastores.mat.
-2. - TestPreprocessing (Optional)
+2. TestPreprocessing (Optional)
     Visual check of the preprocessing functions on random samples.
     The execution of this script has no effect on the experiments.
-3. - GenerateDatasets
+3. GenerateDatasets
     Builds the three dataset variants and caches the processed images
     in data/processed/. Produces data/datastores_processed.mat:
         imdsTrain,       imdsVal,       imdsTest       (baseline)
         imdsTrainStd,    imdsValStd,    imdsTestStd    (standardization)
         imdsTrainAug                                   (augmentation)
-4. - RunExperiments
+4. RunExperiments
     Trains the SCNN nRuns times (configurable) on each dataset variant and
     saves per-run results to results/per_run_results/.
     Configuration options can be edited by tweaking the values at the top of the script.
-5. - ProcessResults
+5. ProcessResults
     Loads all per-run .mat files, aggregates statistics (mean +/- std),
     prints summary tables on the terminal, and saves:
       - `results/overall_results/summary_<exp>.mat`
@@ -97,7 +98,7 @@ Then execute the scripts (contained in the scripts/ directory) in order:
       - `results/overall_results/experiment_result.txt`
     IMPORTANT: set nRuns at the top of the script to match the value used
                 in RunExperiments.
-6. - TestSignificance (Optional)
+6. TestSignificance (Optional)
     Performs pair-wise, Bonferroni corrected t-tests on the macro f1 results
     to determine whether the differences in their values are statistically significant.
     The results are printed to the terminal and saved to `results/overall_results/significance_test.txt`
