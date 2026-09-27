@@ -1,0 +1,13 @@
+# === Datasets ===
+data/FRGMRC-221022-RELEASE-V1.0/
+data/processed/
+
+# === Results ===
+results/
+
+# === MATLAB misc ===
+resources/
+*.mat
+
+# === REPORT TEX ===
+experiment_report/
