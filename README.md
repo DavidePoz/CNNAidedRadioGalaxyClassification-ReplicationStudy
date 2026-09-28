@@ -2,31 +2,43 @@
 
 This is a (partial) replication study of the work on image preprocessing and augmentation
 applied to CNN-aided morphological classification of radio galaxies by Brand et al. (2023).
-
 The reference paper can be found at: https://academic.oup.com/mnras/article/522/1/292/7100971.
 
-A detailed report of the experiment results is provided by `ExperimentReport.pdf`.
-## DATASET
-The dataset (provided by the original authors) is not included in this repository. 
-Download it from: https://doi.org/10.5281/zenodo.7645530.
-Then extract the archive and place it in the `data/` directory as shown below:
+A short summary of the work is provided below. For a more detailed report of the experiment and 
+the observed results, refer to `ExperimentReport.pdf`.
 
-```
-    data/
-    └── FRGMRC-221022-RELEASE-V1.0/
-        ├── FRGMRC-221022-RELEASE-V1.0.csv
-        ├── FRGMRC-221022-ORIG.csv
-        ├── FRGMRC-221022-WORK.csv
-        └── *.fits   (960 FITS images, 300x300 pixels each)
-```
+## SHORT SUMMARY
+The experiment is aimed at determining whether two image preprocessing techniques 
+can improve the classification accuracy and training times of a Convolutional Neural
+Network (CNN) in the context of the morphological classification of radio galaxies.
 
-## REQUIREMENTS
-1. MATLAB R2023a or later.
-2- Toolboxes:
-    - Deep Learning Toolbox.
-    - Image Processing Toolbox.
-    - Statistics and Machine Learning Toolbox.
-3. Optional: CUDA-capable GPU (to improve training speeds).
+The two techniques to be tested are:
+1. **ROTATIONAL STANDARDIZATION** : this aims at *standardizing* the *orientation* of 
+galaxies in each image by aligning the galaxies' principal component to the
+main image axis (achieved with PCA via SVD).
+The idea is to *reduce the intra-class variance* in the dataset.
+2. **ROTATIONAL AUGMENTATION** : this aims at *generating multiple rotated copies* of each
+training sample. Ideally, this should provide the network with more information about
+the *intra-class variability* in the data.
+
+To test these techniques, three *dataset variants* are employed:
+1. **BASELINE** : Raw images with only normalization applied.
+2. **STANDARDIZED** : Obtained by applying rotational standardization to the baseline.
+3. **AUGMENTED** : Obtained by augmenting the baseline training set.
+
+At the end of the experiment, it was found that:
+1. *Both* techniques tested *improve classification accuracy*.
+2. *Augmentation* leads to the *greatest improvement*.
+3. *Rotational standardization*, though achieving slightly worse classification accuracy
+compared to augmentation, *greatly speeds up training*.
+
+>[!NOTE]
+>The experiment was performed with a **simpler** (thus *less expressive*) **network
+>architecture** compared to that of the original study.
+>This was done intentionally, with the hope of understanding whether the original results
+>were architecture-dependent.
+
+Again, for a more detailed report of the results, refer to the provided pdf.
 
 ## DIRECTORY STRUCTURE
 ```
@@ -69,37 +81,62 @@ Then extract the archive and place it in the `data/` directory as shown below:
         ├── overall_results/                Aggregated summaries and figures
         └── models/                         Trained networks (optional: see comments in RunExperiments.m)
 ```
+# RUNNING THE CODE
+## DATASET
+The dataset (provided by the original authors) is not included in this repository. 
+**Download** it from: https://doi.org/10.5281/zenodo.7645530.
+Then *extract the archive* and place it in the `data/` directory as *shown below*:
 
-# HOW TO RUN
+```
+    data/
+    └── FRGMRC-221022-RELEASE-V1.0/
+        ├── FRGMRC-221022-RELEASE-V1.0.csv
+        ├── FRGMRC-221022-ORIG.csv
+        ├── FRGMRC-221022-WORK.csv
+        └── *.fits   (960 FITS images, 300x300 pixels each)
+```
+
+## REQUIREMENTS
+1. MATLAB R2023a or later.
+2- Toolboxes:
+    - Deep Learning Toolbox.
+    - Image Processing Toolbox.
+    - Statistics and Machine Learning Toolbox.
+3. Optional: CUDA-capable GPU (to improve training speeds).
+
+## HOW TO RUN
 Open MATLAB with the project root as working directory. The file `startup.m`
 adds the necessary folders to the MATLAB path automatically.
-Then execute the scripts (contained in the scripts/ directory) in order:
-1. LoadData
+Then *execute the scripts* (contained in the scripts/ directory) in order:
+1. **LoadData**
     Reads the CSV, creates an imageDatastore, splits into train/val/test
     (80% / 10% / 10%), saves to data/datastores.mat.
-2. TestPreprocessing (Optional)
-    Visual check of the preprocessing functions on random samples.
+2. **TestPreprocessing** (Optional)
+    Test script to perform a visual check of the preprocessing functions on random samples.
     The execution of this script has no effect on the experiments.
-3. GenerateDatasets
+3. **GenerateDatasets**
     Builds the three dataset variants and caches the processed images
     in data/processed/. Produces data/datastores_processed.mat:
-        imdsTrain,       imdsVal,       imdsTest       (baseline)
-        imdsTrainStd,    imdsValStd,    imdsTestStd    (standardization)
-        imdsTrainAug                                   (augmentation)
-4. RunExperiments
-    Trains the SCNN nRuns times (configurable) on each dataset variant and
-    saves per-run results to results/per_run_results/.
-    Configuration options can be edited by tweaking the values at the top of the script.
-5. ProcessResults
+      - `imdsTrain, imdsVal, imdsTest` (baseline)
+      - `imdsTrainStd, imdsValStd, imdsTestStd` (standardization)
+      - `imdsTrainAug` (augmentation)
+4. **RunExperiments**
+    Trains the SCNN `nRuns` times (configurable) on each dataset variant and
+    saves per-run results to `results/per_run_results/`.
+    
+5. **ProcessResults**
     Loads all per-run .mat files, aggregates statistics (mean +/- std),
     prints summary tables on the terminal, and saves:
       - `results/overall_results/summary_<exp>.mat`
       - `results/overall_results/figures/cm_<exp>.png`
       - `results/overall_results/experiment_result.txt`
-    IMPORTANT: set nRuns at the top of the script to match the value used
-                in RunExperiments.
-6. TestSignificance (Optional)
+6. **TestSignificance** (Optional)
     Performs pair-wise, Bonferroni corrected t-tests on the macro f1 results
     to determine whether the differences in their values are statistically significant.
     The results are printed to the terminal and saved to `results/overall_results/significance_test.txt`
     The execution of this script has no effect on the experiments.
+
+>[!NOTE]
+>Configuration options can be edited by tweaking the values at the
+>top of the `RunExperiments` script, but pay attention to also set `nRuns`
+>inside `ProcessResults` to the same value.
